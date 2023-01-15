@@ -13,6 +13,7 @@ app.use(cors());
 app.use('/auth', authController);
 app.use('/secure',securePathMiddleware,secureController);
 app.use('/admin',securePathMiddleware,isAdminMiddleware,adminController);
+app.use('/movies', moviesController);
 
 app.listen(2020, () => {
     console.log('Server started on port 2020');
