@@ -4,6 +4,7 @@ const authController = require('./src/Controllers/authController.js');
 const secureController = require('./src/Controllers/idleController.js');
 const adminController = require('./src/Controllers/adminController.js');
 const moviesController = require('./src/Controllers/moviesController.js');
+const movieController = require('./src/Controllers/movieController.js');
 const { isAdminMiddleware } = require('./src/Middlewares/isAdminMiddleware.js');
 const { securePathMiddleware } = require('./src/Middlewares/securePathMiddleware.js');
 const { getTopMovies } = require('./src/Services/moviesService.js');
@@ -24,6 +25,7 @@ app.use('/movies/top', async (req, res) => {
     }
 });
 app.use('/movies', moviesController);
+app.use('/movie',securePathMiddleware, movieController)
 
 
 app.listen(2020, () => {

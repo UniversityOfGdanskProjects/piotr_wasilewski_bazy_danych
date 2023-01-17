@@ -12,7 +12,8 @@ exports.getTopMovies = async (req, res) => {
                     title: record._fields[0].properties.title,
                     released: record._fields[0].properties.released.low,
                     tagline: record._fields[0].properties.tagline,
-                    id: record._fields[0].identity.low
+                    id: record._fields[0].properties.id,
+                    poster_path: record._fields[0].properties.poster_image
                 },
                 rating: record._fields[1]
             }
@@ -35,7 +36,8 @@ exports.getAllMoviesWithRatingsAndGenres = async (req, res) => {
                     title: record._fields[0].properties.title,
                     released: record._fields[0].properties.released.low,
                     tagline: record._fields[0].properties.tagline,
-                    id: record._fields[0].identity.low
+                    id: record._fields[0].properties.id,
+                    poster_path: record._fields[0].properties.poster_image
                 },
                 rating: record._fields[1],
                 genre: record._fields[2].properties.name
@@ -58,7 +60,8 @@ exports.getMovieByTitleWithRatingAndGenre = async (title) => {
                     title: record._fields[0].properties.title,
                     released: record._fields[0].properties.released.low,
                     tagline: record._fields[0].properties.tagline,
-                    id: record._fields[0].identity.low
+                    id: record._fields[0].properties.id,
+                    poster_path: record._fields[0].properties.poster_image
                 },
                 rating: record._fields[1],
                 genre: record._fields[2].properties.name
@@ -81,7 +84,8 @@ exports.getMovieByGenreWithRatingAndGenre = async (genre) => {
                     title: record._fields[0].properties.title,
                     released: record._fields[0].properties.released.low,
                     tagline: record._fields[0].properties.tagline,
-                    id: record._fields[0].identity.low
+                    id: record._fields[0].properties.id,
+                    poster_path:  record._fields[0].properties.poster_image
                 },
                 rating: record._fields[1],
                 genre: record._fields[2].properties.name
@@ -96,7 +100,8 @@ exports.getMovieByGenreWithRatingAndGenre = async (genre) => {
 
 exports.getMovieByDirectorWithRatingAndGenre = async (director) => {
     try {
-        const query = `MATCH (m:Movie)<-[r:RATED]-(:User) , (m:Movie)-[:TYPE]->(g:Genre) WHERE apoc.text.clean(m.director) CONTAINS apoc.text.clean("${director}") WITH m , avg(r.rating) as avg_rating, count(r) as rating_count, g as genre ORDER BY rating_count DESC, avg_rating DESC RETURN m, avg_rating, genre`;
+        const query = `MATCH (m:Movie)<-[r:RATED]-(:User) , (m:Movie)-[:TYPE]->(g:Genre) ,(m:Movie)<-[:DIRECTED]-(p:Person) where toLower(p.name) contains toLower(apoc.text.join(apoc.text.split("${director}", '-'),' ')) WITH m , avg(r.rating) as avg_rating, count(r) as rating_count, g as genre ORDER BY rating_count DESC, avg_rating DESC RETURN m, avg_rating, genre
+        `;
         const result = await session.run(query);
         const movies = result.records.map(record => {
             return {
@@ -104,7 +109,8 @@ exports.getMovieByDirectorWithRatingAndGenre = async (director) => {
                     title: record._fields[0].properties.title,
                     released: record._fields[0].properties.released.low,
                     tagline: record._fields[0].properties.tagline,
-                    id: record._fields[0].identity.low
+                    id: record._fields[0].properties.id,
+                    poster_path: record._fields[0].properties.poster_image
                 },
                 rating: record._fields[1],
                 genre: record._fields[2].properties.name
@@ -127,7 +133,8 @@ exports.getMovieByYearWithRatingAndGenre = async (year) => {
                     title: record._fields[0].properties.title,
                     released: record._fields[0].properties.released.low,
                     tagline: record._fields[0].properties.tagline,
-                    id: record._fields[0].identity.low
+                    id: record._fields[0].properties.id,
+                    poster_path: record._fields[0].properties.poster_image
                 },
                 rating: record._fields[1],
                 genre: record._fields[2].properties.name
@@ -150,7 +157,8 @@ exports.getMovieByActorWithRatingAndGenre = async (actor) => {
                     title: record._fields[0].properties.title,
                     released: record._fields[0].properties.released.low,
                     tagline: record._fields[0].properties.tagline,
-                    id: record._fields[0].identity.low
+                    id: record._fields[0].properties.id,
+                    poster_path: record._fields[0].properties.poster_image
                 },
                 rating: record._fields[1],
                 genre: record._fields[2].properties.name
