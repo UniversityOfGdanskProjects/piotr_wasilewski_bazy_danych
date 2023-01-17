@@ -60,3 +60,33 @@ exports.getMovieById = async (id) => {
     }
     
 };
+
+exports.addComment = async (movie_id, comment, user_id) => {
+    try {
+        const result = await session.run(
+            `match (u:User {id: '${user_id}'}) , (m:Movie {id: '${movie_id}'})
+            MERGE (u)-[c:COMMENTED {comments:[]}]->(m)
+            ON CREATE SET c.comments = ["${comment}"]
+            ON MATCH SET c.comments = c.comments + ["${comment}"]`,
+            
+        );
+        return {message: 'Comment added successfully!'}; 
+        }
+     catch (error) {
+        throw new Error(error);
+    }
+}
+
+exports.addRate = async (movie_id, rate, user_id) => {
+    try {
+        const result = await session.run(
+            `match (u:User {id: '${user_id}'}) , (m:Movie {id: '${movie_id}'})
+            MERGE (u)-[r:RATED {rating: ${rate}}]->(m)`,
+            
+        );
+        return {message: 'Rating added successfully!'}; 
+        }
+     catch (error) {
+        throw new Error(error);
+    }
+}
