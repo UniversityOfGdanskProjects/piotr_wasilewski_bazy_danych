@@ -54,7 +54,25 @@ exports.getMovieById = async (id) => {
             }
         });
 
-        return {movie,crewList,castList};
+        const comments = await session.run(
+            `MATCH (m:Movie)<-[r:COMMENTED]-(u:User)
+            WHERE m.id = $id
+            RETURN u,r`,
+            {id}
+        );
+        const commentList = comments.records.map(record => {
+            return {
+                user: {
+                    name: record._fields[0].properties.name,
+                    id: record._fields[0].properties.id,
+                    profile_image: record._fields[0].properties.profile_image
+                },
+                comments: record._fields[1].properties.comments
+            }
+        });
+
+
+        return {movie:movie,director:crewList,actors:castList,comments:commentList};
     } catch (error) {
         throw new Error(error);
     }
@@ -77,6 +95,20 @@ exports.addComment = async (movie_id, comment, user_id) => {
     }
 }
 
+exports.deleteComment = async (movie_id, user_id) => {
+    try {
+        const result = await session.run(
+            `match (u:User {id: '${user_id}'})-[r:COMMENTED]->(m:Movie {id: '${movie_id}'})
+            DELETE r`,
+        );
+        return {message: 'Comment deleted successfully!'};
+    }
+    catch (error) {
+        throw new Error(error);
+    }
+}
+
+
 exports.addRate = async (movie_id, rate, user_id) => {
     try {
         const result = await session.run(
@@ -85,6 +117,48 @@ exports.addRate = async (movie_id, rate, user_id) => {
             
         );
         return {message: 'Rating added successfully!'}; 
+        }
+     catch (error) {
+        throw new Error(error);
+    }
+}
+
+exports.addToWishlist = async (movie_id, user_id) => {
+    try {
+        const result = await session.run(
+            `match (u:User {id: '${user_id}'}) , (m:Movie {id: '${movie_id}'})
+            MERGE (u)-[r:WISHLISTED]->(m)`,
+            
+        );
+        return {message: 'Movie added to wishlist successfully!'}; 
+        }
+     catch (error) {
+        throw new Error(error);
+    }
+}
+
+exports.addToFavorites = async (movie_id, user_id) => {
+    try {
+        const result = await session.run(
+            `match (u:User {id: '${user_id}'}) , (m:Movie {id: '${movie_id}'})
+            MERGE (u)-[r:FAVORITED]->(m)`,
+            
+        );
+        return {message: 'Movie added to favorites successfully!'}; 
+        }
+     catch (error) {
+        throw new Error(error);
+    }
+}
+
+exports.deleteFromWishlist = async (movie_id, user_id) => {
+    try {
+        const result = await session.run(
+            `match (u:User {id: '${user_id}'})-[r:WISHLISTED]->(m:Movie {id: '${movie_id}'})
+            DELETE r`,
+            
+        );
+        return {message: 'Movie deleted from wishlist successfully!'}; 
         }
      catch (error) {
         throw new Error(error);

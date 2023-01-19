@@ -1,6 +1,14 @@
 const express = require('express');
 const router = express.Router();
-const { getMovieById, addComment, addRate } = require('../Services/movieService.js');
+const { 
+     getMovieById,
+     addComment,
+     addRate,
+     addToWishlist,
+     addToFavorites,
+     deleteFromWishlist,
+     deleteComment 
+    } = require('../Services/movieService.js');
 
 router.get('/:id', async (req, res) => {
     try {
@@ -24,6 +32,16 @@ router.post('/comment/:id', async (req, res) => {
     }
 });
 
+router.delete('/comment/:id', async (req, res) => {
+    try {
+        const { id } = req.params;
+        const result = await deleteComment(id,req.tokenInfo.id);
+        res.status(200).json(result);
+    } catch (error) {
+        res.status(500).json({message: error.message});
+    }
+});
+
 router.post('/rate/:id', async (req, res) => {
     try {
         const { id } = req.params;
@@ -36,4 +54,33 @@ router.post('/rate/:id', async (req, res) => {
     }
 });
 
+router.put('/wishlist/:id', async (req, res) => {
+    try {
+        const { id } = req.params;
+        const result = await addToWishlist(id,req.tokenInfo.id);
+        res.status(200).json(result);
+    } catch (error) {
+        res.status(500).json({message: error.message});
+    }
+});
+
+router.put('/favorite/:id', async (req, res) => {
+    try {
+        const { id } = req.params;
+        const result = await addToFavorites(id,req.tokenInfo.id);
+        res.status(200).json(result);
+    } catch (error) {
+        res.status(500).json({message: error.message});
+    }
+});
+
+router.delete('/wishlist/:id', async (req, res) => {
+    try {
+        const { id } = req.params;
+        const result = await deleteFromWishlist(id,req.tokenInfo.id);
+        res.status(200).json(result);
+    } catch (error) {
+        res.status(500).json({message: error.message});
+    }
+});
 module.exports = router;
