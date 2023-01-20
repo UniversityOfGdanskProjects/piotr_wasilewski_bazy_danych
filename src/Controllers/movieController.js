@@ -7,7 +7,7 @@ const {
      addToWishlist,
      addToFavorites,
      deleteFromWishlist,
-     deleteComment 
+     deleteFromFavorites
     } = require('../Services/movieService.js');
 
 router.get('/:id', async (req, res) => {
@@ -35,7 +35,8 @@ router.post('/comment/:id', async (req, res) => {
 router.delete('/comment/:id', async (req, res) => {
     try {
         const { id } = req.params;
-        const result = await deleteComment(id,req.tokenInfo.id);
+        const {commentId} = req.body;
+        const result = await deleteComment(id,req.tokenInfo.id,commentId);
         res.status(200).json(result);
     } catch (error) {
         res.status(500).json({message: error.message});
@@ -45,7 +46,7 @@ router.delete('/comment/:id', async (req, res) => {
 router.post('/rate/:id', async (req, res) => {
     try {
         const { id } = req.params;
-        const { rate } = req.body;
+        let { rate } = req.body;
         rate = parseInt(rate);
         const result = await addRate(id, rate,req.tokenInfo.id);
         res.status(200).json(result);
@@ -64,6 +65,16 @@ router.put('/wishlist/:id', async (req, res) => {
     }
 });
 
+router.delete('/wishlist/:id', async (req, res) => {
+    try {
+        const { id } = req.params;
+        const result = await deleteFromWishlist(id,req.tokenInfo.id);
+        res.status(200).json(result);
+    } catch (error) {
+        res.status(500).json({message: error.message});
+    }
+});
+
 router.put('/favorite/:id', async (req, res) => {
     try {
         const { id } = req.params;
@@ -74,10 +85,10 @@ router.put('/favorite/:id', async (req, res) => {
     }
 });
 
-router.delete('/wishlist/:id', async (req, res) => {
+router.delete('/favorite/:id', async (req, res) => {
     try {
         const { id } = req.params;
-        const result = await deleteFromWishlist(id,req.tokenInfo.id);
+        const result = await deleteFromFavorites(id,req.tokenInfo.id);
         res.status(200).json(result);
     } catch (error) {
         res.status(500).json({message: error.message});

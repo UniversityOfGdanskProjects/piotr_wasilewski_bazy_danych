@@ -71,7 +71,6 @@ exports.getMovieById = async (id) => {
             }
         });
 
-
         return {movie:movie,director:crewList,actors:castList,comments:commentList};
     } catch (error) {
         throw new Error(error);
@@ -83,9 +82,8 @@ exports.addComment = async (movie_id, comment, user_id) => {
     try {
         const result = await session.run(
             `match (u:User {id: '${user_id}'}) , (m:Movie {id: '${movie_id}'})
-            MERGE (u)-[c:COMMENTED {comments:[]}]->(m)
-            ON CREATE SET c.comments = ["${comment}"]
-            ON MATCH SET c.comments = c.comments + ["${comment}"]`,
+            CREATE (u)-[r:COMMENTED {id: apoc.create.uuid(), comments: '${comment}'}]->(m)
+            `,
             
         );
         return {message: 'Comment added successfully!'}; 
@@ -95,10 +93,10 @@ exports.addComment = async (movie_id, comment, user_id) => {
     }
 }
 
-exports.deleteComment = async (movie_id, user_id) => {
+exports.deleteComment = async (movie_id, user_id, comment_id) => {
     try {
         const result = await session.run(
-            `match (u:User {id: '${user_id}'})-[r:COMMENTED]->(m:Movie {id: '${movie_id}'})
+            `match (u:User {id: '${user_id}'})-[r:COMMENTED {id: "${comment_id}"}]->(m:Movie {id: '${movie_id}'})
             DELETE r`,
         );
         return {message: 'Comment deleted successfully!'};
@@ -108,9 +106,15 @@ exports.deleteComment = async (movie_id, user_id) => {
     }
 }
 
-
 exports.addRate = async (movie_id, rate, user_id) => {
     try {
+        const isALreadyRated = await session.run(
+            `match (u:User {id: '${user_id}'})-[r:RATED]->(m:Movie {id: '${movie_id}'})
+            RETURN r`,
+        );
+        if(isALreadyRated.records.length > 0){
+            return {message: 'Already rated!'};
+        }
         const result = await session.run(
             `match (u:User {id: '${user_id}'}) , (m:Movie {id: '${movie_id}'})
             MERGE (u)-[r:RATED {rating: ${rate}}]->(m)`,
@@ -125,26 +129,19 @@ exports.addRate = async (movie_id, rate, user_id) => {
 
 exports.addToWishlist = async (movie_id, user_id) => {
     try {
+        const isALreadyInWishlist = await session.run(
+            `match (u:User {id: '${user_id}'})-[r:WISHLISTED]->(m:Movie {id: '${movie_id}'})
+            RETURN r`,
+        );
+        if(isALreadyInWishlist.records.length > 0){
+            return {message: 'Movie already in wishlist!'};
+        }
         const result = await session.run(
             `match (u:User {id: '${user_id}'}) , (m:Movie {id: '${movie_id}'})
             MERGE (u)-[r:WISHLISTED]->(m)`,
             
         );
         return {message: 'Movie added to wishlist successfully!'}; 
-        }
-     catch (error) {
-        throw new Error(error);
-    }
-}
-
-exports.addToFavorites = async (movie_id, user_id) => {
-    try {
-        const result = await session.run(
-            `match (u:User {id: '${user_id}'}) , (m:Movie {id: '${movie_id}'})
-            MERGE (u)-[r:FAVORITED]->(m)`,
-            
-        );
-        return {message: 'Movie added to favorites successfully!'}; 
         }
      catch (error) {
         throw new Error(error);
@@ -164,3 +161,39 @@ exports.deleteFromWishlist = async (movie_id, user_id) => {
         throw new Error(error);
     }
 }
+
+exports.addToFavorites = async (movie_id, user_id) => {
+    try {
+        const isALreadyInFavorites = await session.run(
+            `match (u:User {id: '${user_id}'})-[r:FAVORITED]->(m:Movie {id: '${movie_id}'})
+            RETURN r`,
+        );
+        if(isALreadyInFavorites.records.length > 0){
+            return {message: 'Movie already in favorites!'};
+        }
+        const result = await session.run(
+            `match (u:User {id: '${user_id}'}) , (m:Movie {id: '${movie_id}'})
+            MERGE (u)-[r:FAVORITED]->(m)`,
+            
+        );
+        return {message: 'Movie added to favorites successfully!'}; 
+        }
+     catch (error) {
+        throw new Error(error);
+    }
+}
+
+exports.deleteFromFavorites = async (movie_id, user_id) => {
+    try {
+        const result = await session.run(
+            `match (u:User {id: '${user_id}'})-[r:FAVORITED]->(m:Movie {id: '${movie_id}'})
+            DELETE r`,
+            
+        );
+        return {message: 'Movie deleted from favorites successfully!'}; 
+        }
+     catch (error) {
+        throw new Error(error);
+    }
+}
+

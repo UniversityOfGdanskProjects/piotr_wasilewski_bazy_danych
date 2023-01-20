@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { registerNewUser, userLogin } = require('../Services/authService.js');
+const { registerNewUser, userLogin, getUser } = require('../Services/authService.js');
 
 router.post('/register', async (req, res) => {
     const {email, password, name, last_name} = req.body;
@@ -20,7 +20,16 @@ router.post('/login', async (req, res) => {
     } catch (error) {
         res.status(500).json({message: error.message});
     }
+});
 
+router.get('/user', async (req, res) => {
+    try {
+        console.log(req.tokenInfo.id);
+        const user = await getUser(req.tokenInfo.id);
+        res.status(200).json(user);
+    } catch (error) {
+        res.status(500).json({message: error.message});
+    }
 });
 
 module.exports = router;
