@@ -15,18 +15,17 @@ exports.getMovieById = async (id) => {
         );
         const movie = result.records.map(record => {
             return {
-                movie: {
+                
                     title: record._fields[0].properties.title,
-                    released: record._fields[0].properties.released.low,
+                    released: record._fields[0].properties.released,
                     tagline: record._fields[0].properties.tagline,
                     id: record._fields[0].properties.id,
                     poster_path: record._fields[0].properties.poster_image,
-                    image_urls: record._fields[0].properties.image_urls
-                },
-                rating: record._fields[1],
-                genre: record._fields[2].properties.name
+                    image_urls: record._fields[0].properties.image_urls,
+                    rating: record._fields[1],
+                    genre: record._fields[2].properties.name
             }
-        });
+        })[0];
         const cast = await session.run(
             `MATCH (m:Movie)<-[r:ACTED_IN]-(a:Person)
             WHERE m.id = $id
@@ -65,13 +64,13 @@ exports.getMovieById = async (id) => {
                 user: {
                     name: record._fields[0].properties.name,
                     id: record._fields[0].properties.id,
-                    profile_image: record._fields[0].properties.profile_image
                 },
-                comments: record._fields[1].properties.comments
+                comments: record._fields[1].properties.comments,
+                id: record._fields[1].properties.id
             }
         });
 
-        return {movie:movie,director:crewList,actors:castList,comments:commentList};
+        return {movie,director:crewList,actors:castList,comments:commentList};
     } catch (error) {
         throw new Error(error);
     }
@@ -86,6 +85,7 @@ exports.addComment = async (movie_id, comment, user_id) => {
             `,
             
         );
+        
         return {message: 'Comment added successfully!'}; 
         }
      catch (error) {
@@ -93,7 +93,40 @@ exports.addComment = async (movie_id, comment, user_id) => {
     }
 }
 
+exports.getMovieComments = async (movie_id) => {
+    try {
+        const result = await session.run(
+            `MATCH (m:Movie)<-[r:COMMENTED]-(u:User)
+            WHERE m.id = $id
+            RETURN u,r`,
+            {id: movie_id}
+        );
+        const commentList = result.records.map(record => {
+            return {
+                user: {
+                    name: record._fields[0].properties.name,
+                    id: record._fields[0].properties.id,
+                },
+                comments: record._fields[1].properties.comments
+            }
+        });
+        return commentList;
+    } catch (error) {
+        throw new Error(error);
+    }
+}
+
+// {
+//     "user": {
+//         "name": "wiktor",
+//         "id": "5580a7f5-3a14-47bd-8c81-a69b9cee7e6a"
+//     },
+//     "comments": [
+//         "Dobry,film"
+//     ]
+// },
 exports.deleteComment = async (movie_id, user_id, comment_id) => {
+    console.log(`movie_id: ${movie_id}, user_id: ${user_id}, comment_id: ${comment_id}`);
     try {
         const result = await session.run(
             `match (u:User {id: '${user_id}'})-[r:COMMENTED {id: "${comment_id}"}]->(m:Movie {id: '${movie_id}'})
@@ -193,6 +226,37 @@ exports.deleteFromFavorites = async (movie_id, user_id) => {
         return {message: 'Movie deleted from favorites successfully!'}; 
         }
      catch (error) {
+        throw new Error(error);
+    }
+}
+
+exports.blockMovie = async (movie_id, user_id) => {
+    console.log(`movie_id: ${movie_id}, user_id: ${user_id}`);
+    const query = `MATCH (u:User {id: '${user_id}'})-[r:BLOCKED]->(m:Movie {id: '${movie_id}'})
+    RETURN r`;
+    try {
+        const result = await session.run(query);
+        if(result.records.length > 0){
+            return {message: 'Movie already blocked!'};
+        }
+        const result2 = await session.run(
+            `MATCH (u:User {id: '${user_id}'}) , (m:Movie {id: '${movie_id}'})
+            CREATE (u)-[:BLOCKED]->(m)`,
+        );
+        return {message: 'Movie blocked successfully!'};
+    } catch (error) {
+        throw new Error(error);
+    }
+}
+
+exports.unBlockMovie = async (movie_id, user_id) => {
+    console.log(`movie_id: ${movie_id}, user_id: ${user_id}`);
+    const query = `MATCH (u:User {id: '${user_id}'})-[r:BLOCKED]->(m:Movie {id: '${movie_id}'})
+    DELETE r`;
+    try {
+        const result = await session.run(query);
+        return {message: 'Movie unblocked successfully!'};
+    } catch (error) {
         throw new Error(error);
     }
 }

@@ -24,9 +24,9 @@ app.use('/admin',securePathMiddleware,isAdminMiddleware,adminController);
 app.use('/movies/top', async (req, res) => {
     try {
         const result = await getTopMovies();
-        res.status(200).json(result);
+       return res.status(200).json(result);
     } catch (error) {
-        res.status(500).json({message: error.message});
+        return res.status(500).json(error);
     }
 });
 app.use('/movies', securePathMiddleware,moviesController);

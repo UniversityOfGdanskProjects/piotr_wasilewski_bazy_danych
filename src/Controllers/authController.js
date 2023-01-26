@@ -8,7 +8,8 @@ router.post('/register', async (req, res) => {
         const result = await registerNewUser(email, password, name, last_name);
         res.status(200).json({message: result});
     } catch (error) {
-        res.status(500).json({message: error.message});
+        console.log(error.message);
+        res.status(418).json({message: error});
     }
 });
 
@@ -18,6 +19,7 @@ router.post('/login', async (req, res) => {
         const result = await userLogin(email, password);
         res.status(200).json({token: result});
     } catch (error) {
+        console.log(error.message);
         res.status(500).json({message: error.message});
     }
 });

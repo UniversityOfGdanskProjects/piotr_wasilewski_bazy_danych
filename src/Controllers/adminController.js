@@ -1,8 +1,16 @@
 const express = require('express');
 const router = express.Router();
 
-router.get('/', (req, res) => {
-    res.status(200).json({message: 'siema z zabezieczonego enpointa jako admin'});
-})
+router.delete('/movie', async (req, res) => {
+    // TODO: delete movie
+});
+
+router.delete('/user', async (req, res) => {
+    // TODO: delete user
+});
+
+router.delete('/comment', async (req, res) => {
+    // TODO: delete comment
+});
 
 module.exports = router;
