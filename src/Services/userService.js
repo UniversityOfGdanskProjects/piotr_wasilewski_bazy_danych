@@ -14,11 +14,12 @@ exports.getFavorites = async (id) => {
         const result = await session.run(
             `MATCH (u:User {id: "${id}"})-[r:FAVORITED]->(m:Movie) RETURN m`
         );
+        console.log(result.records[0]._fields[0].properties);
         const favorites = result.records.map(record => {
             return {
                 id: record._fields[0].properties.id,
                 title: record._fields[0].properties.title,
-                poster: record._fields[0].properties.poster,
+                poster: record._fields[0].properties.poster_path,
                 rating: record._fields[0].properties.rating,
                 genre: record._fields[0].properties.genre
             }

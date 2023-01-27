@@ -4,17 +4,24 @@ const {
     deleteUser,
     deleteComment,
     addMovie,
-    getReport
+    getReport,
+    getUsers,
+    deleteMovie
 } = require('../Services/adminService');
 
-router.delete('/movie', async (req, res) => {
-    // TODO: delete movie
+router.delete('/movie/:id', async (req, res) => {
+    try {
+        result = await deleteMovie(req.params.id);
+        res.status(200).json(result);
+    } catch (error) {
+        res.status(500).json({message: error.message});
+    }
 });
 
 router.delete('/user/:id', async (req, res) => {
     try {
-        res = await deleteUser(req.params.id);
-        res.status(200).json(res);
+        result = await deleteUser(req.params.id);
+        res.status(200).json(result);
     } catch (error) {
         res.status(500).json({message: error.message});
     }
@@ -55,4 +62,14 @@ router.get('/report', async (req, res) => {
         res.status(500).json({message: error.message});
     }
 });
+
+router.get('/users', async (req, res) => {
+    try {
+        const result = await getUsers();
+        res.status(200).json(result);
+    } catch (error) {
+        res.status(500).json({message: error.message});
+    }
+});
+
 module.exports = router;

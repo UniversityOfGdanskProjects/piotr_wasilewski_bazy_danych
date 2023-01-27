@@ -93,10 +93,14 @@ exports.getAllMoviesWithRatingsAndGenres = async (title, genre, director, year, 
 exports.getBlockedMovies = async (user_id) => {
     try {
         const query = `
-        MATCH (m:Movie)<-[:BLOCKED]-(u:User {id: "${user_id}"})
-        RETURN m
+        MATCH (m:Movie)<-[:BLOCKED]-(u:User {id: "${user_id}"}),
+(m)<-[r:RATED]-(h:User)
+WITH m ,
+avg(r.rating) as avg_rating
+RETURN m, avg_rating
         `;
         const result = await session.run(query);
+        console.log(result);
         const movies = result.records.map(record => {
             return {
                 movie: {
@@ -106,6 +110,7 @@ exports.getBlockedMovies = async (user_id) => {
                     id: record._fields[0].properties.id,
                     poster_path: record._fields[0].properties.poster_image,
                     tagline: record._fields[0].properties.tagline,
+                    rating: record._fields[1]
                 }
             }
         });
